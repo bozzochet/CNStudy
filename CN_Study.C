@@ -10,9 +10,9 @@ TTree* OpenTree(float CNs[2][9][16], float Signals[2][9][1024]) {
   
   //Reset ROOT and connect tree file
   gROOT->Reset();
-  TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("run_010855_ONLYCAL.root");
+  TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("../run_018019_ONLYCAL.root");
   if (!f) {
-    f = new TFile("run_010855_ONLYCAL.root");
+    f = new TFile("../run_018019_ONLYCAL.root");
   }
   f->GetObject("t3",t3);
     
@@ -493,7 +493,7 @@ void CN_Verification(){
   return;
 }
 
-void CN_Plot(){
+void CN_Plot(int _linf_to_plot=0, int _lef_to_plot=0, int _fig_to_plot=0){
 
   TFile* foutput = new TFile("foutput.root", "RECREATE");
   foutput->cd();
@@ -512,7 +512,8 @@ void CN_Plot(){
   for (long int jj=0; jj<2; jj++) {
     for (long int tt=0; tt<9; tt++) {
       for (long int vv=0; vv<16; vv++) {
-	hCN[jj][tt][vv] = new TH1D(Form("hCN_%lu_%lu_%lu", jj, tt, vv), Form("VA%lu; CN (ADC); Entries", vv), 201, -10, 10);
+  hCN[jj][tt][vv] = new TH1D(Form("hCN_%lu_%lu_%lu", jj, tt, vv), Form("VA%lu; CN (ADC); Entries", vv), 50, -25, 25);
+  //hCN[jj][tt][vv] = new TH1D(Form("hCN_%lu_%lu_%lu", jj, tt, vv), Form("VA%lu; CN (ADC); Entries", vv), 501, -25, 25);
 	if (vv%2 == 0 ) {
 	  hCN[jj][tt][vv]->SetLineColor(kRed+1);
 	  hCN[jj][tt][vv]->SetMarkerColor(kRed+1);
@@ -530,7 +531,8 @@ void CN_Plot(){
   for (long int jj=0; jj<2; jj++) {
     for (long int tt=0; tt<9; tt++) {
       for (long int aa=0; aa<8; aa++) {
-	hADC[jj][tt][aa] = new TH1D(Form("hADC_%lu_%lu_%lu", jj, tt, aa), Form("ADC%lu; CN (ADC); Entries", aa), 201, -10, 10);
+  //hADC[jj][tt][aa] = new TH1D(Form("hADC_%lu_%lu_%lu", jj, tt, aa), Form("ADC%lu; CN (ADC); Entries", aa), 501, -25, 25);
+  hADC[jj][tt][aa] = new TH1D(Form("hADC_%lu_%lu_%lu", jj, tt, aa), Form("ADC%lu; CN (ADC); Entries", aa), 50, -25, 25);
 	hADC[jj][tt][aa]->SetLineColor(kGreen+2);
 	hADC[jj][tt][aa]->SetMarkerColor(kGreen+2);
 	hADC[jj][tt][aa]->SetLineWidth(3);
@@ -544,12 +546,12 @@ void CN_Plot(){
     for (long int tt=0; tt<9; tt++) {
       for (long int vv=0; vv<16; vv++) {
 	for (long int vv2=0; vv2<16; vv2++) {
-	  hCNdiff[jj][tt][vv][vv2] = new TH1D(Form("hCNdiff_%lu_%lu_%lu_%lu", jj, tt, vv, vv2), Form("VA%lu-VA%lu; CN (ADC); Entries", vv, vv2), 201, -10, 10);
+	  hCNdiff[jj][tt][vv][vv2] = new TH1D(Form("hCNdiff_%lu_%lu_%lu_%lu", jj, tt, vv, vv2), Form("VA%lu-VA%lu; CN (ADC); Entries", vv, vv2), 501, -25, 25);
 	  hCNdiff[jj][tt][vv][vv2]->SetLineColor(kOrange);
 	  hCNdiff[jj][tt][vv][vv2]->SetMarkerColor(kOrange);
 	  hCNdiff[jj][tt][vv][vv2]->SetLineWidth(3);
 	  
-	  hCNcorr[jj][tt][vv][vv2] = new TH2D(Form("hCNcorr_%lu_%lu_%lu_%lu", jj, tt, vv, vv2), Form("VA%lu_vs_VA%lu; VA%lu CN (ADC); VA%lu CN (ADC)", vv, vv2, vv, vv2), 201, -10, 10, 201, -10, 10);
+	  hCNcorr[jj][tt][vv][vv2] = new TH2D(Form("hCNcorr_%lu_%lu_%lu_%lu", jj, tt, vv, vv2), Form("VA%lu_vs_VA%lu; VA%lu CN (ADC); VA%lu CN (ADC)", vv, vv2, vv, vv2), 501, -25, 25, 501, -25, 25);
 	  hCNcorr[jj][tt][vv][vv2]->SetMarkerColor(kOrange);
 	  hCNcorr[jj][tt][vv][vv2]->SetMarkerSize(1.0);
 	}
@@ -608,8 +610,9 @@ void CN_Plot(){
     }
   }
   
-  int lef_to_plot = 0;
-  int VA_to_plot = 1;
+  int linf_to_plot = _linf_to_plot;
+  int lef_to_plot = _lef_to_plot;
+  int VA_to_plot = 4;
   //  int VA2_to_plot = VA_to_plot+1;//for diff and correlation
   int VA2_to_plot = 13;
   int ADC_to_plot = VA_to_plot/2;//automatically rounded to even
@@ -617,38 +620,38 @@ void CN_Plot(){
     printf("You required VA %d to be plotted. Also %d will be used.\n", VA_to_plot, VA_to_plot+1);
     printf("The VA could be on the edge and/or the two VAs are not on the same ADC (we'll plot %d).\n", ADC_to_plot);
   }
-  int Fig_no = 5;
+  int Fig_no = _fig_to_plot;
   
   if (Fig_no == 1) {
-    hCN[0][lef_to_plot][VA_to_plot]->Draw();
+    hCN[linf_to_plot][lef_to_plot][VA_to_plot]->Draw();
     fgaus->SetLineColor(kRed+2);
-    hCN[0][lef_to_plot][VA_to_plot]->Fit(fgaus);
+    hCN[linf_to_plot][lef_to_plot][VA_to_plot]->Fit(fgaus);
   }
   else if (Fig_no == 2) {
-    hCN[0][lef_to_plot][VA_to_plot]->Draw();
-    hCN[0][lef_to_plot][VA_to_plot+1]->Draw("same");
+    hCN[linf_to_plot][lef_to_plot][VA_to_plot]->Draw();
+    hCN[linf_to_plot][lef_to_plot][VA_to_plot+1]->Draw("same");
   }
   else if (Fig_no == 3) {
-    hADC[0][lef_to_plot][ADC_to_plot]->Draw();
-    hCN[0][lef_to_plot][VA_to_plot]->Draw("same");
-    hCN[0][lef_to_plot][VA_to_plot+1]->Draw("same");
-    hADC[0][lef_to_plot][ADC_to_plot]->Draw("same");
+    hADC[linf_to_plot][lef_to_plot][ADC_to_plot]->Draw();
+    hCN[linf_to_plot][lef_to_plot][VA_to_plot]->Draw("same");
+    hCN[linf_to_plot][lef_to_plot][VA_to_plot+1]->Draw("same");
+    hADC[linf_to_plot][lef_to_plot][ADC_to_plot]->Draw("same");
     fgaus->SetLineColor(kGreen+2);
-    hADC[0][lef_to_plot][ADC_to_plot]->Fit(fgaus);
-    hADC[0][lef_to_plot][ADC_to_plot]->Fit(fgaus);
+    hADC[linf_to_plot][lef_to_plot][ADC_to_plot]->Fit(fgaus);
+    hADC[linf_to_plot][lef_to_plot][ADC_to_plot]->Fit(fgaus);
   }
   else if (Fig_no == 4) {
-    hCNdiff[0][lef_to_plot][VA_to_plot][VA2_to_plot]->Draw("same");
+    hCNdiff[linf_to_plot][lef_to_plot][VA_to_plot][VA2_to_plot]->Draw("same");
   }
   else if (Fig_no == 5) {
-    hCNcorr[0][lef_to_plot][VA_to_plot][VA2_to_plot]->Draw("colz");
+    hCNcorr[linf_to_plot][lef_to_plot][VA_to_plot][VA2_to_plot]->Draw("colz");
   }
   else {
-    hCN[0][lef_to_plot][VA_to_plot]->Draw();
+    hCN[linf_to_plot][lef_to_plot][VA_to_plot]->Draw();
     //   fgaus->SetLineColor(kRed+2);
-    //   hCN[0][lef_to_plot][VA_to_plot]->Fit(fgaus);
-    hCN[0][lef_to_plot][VA_to_plot+1]->Draw("same");
-    hADC[0][lef_to_plot][ADC_to_plot]->Draw("same");
+    //   hCN[linf_to_plot][lef_to_plot][VA_to_plot]->Fit(fgaus);
+    hCN[linf_to_plot][lef_to_plot][VA_to_plot+1]->Draw("same");
+    hADC[linf_to_plot][lef_to_plot][ADC_to_plot]->Draw("same");
     //   hSENS[0][lef_to_plot]->Draw("same");
     //   hSENS_median[0][lef_to_plot]->Draw("same");
   }
